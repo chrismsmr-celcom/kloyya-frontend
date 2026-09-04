@@ -14,9 +14,7 @@ import {
   mockConnections,
 } from "./mock-data";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") ??
-  "https://kloyya-ia-vert.vercel.app";
+const BASE_URL = "";
 
 console.log("[API] BASE_URL:", BASE_URL);
 
