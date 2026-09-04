@@ -161,7 +161,7 @@ function mapPlan(outcomeId: string, data: any): OutcomePlan {
 export const api = {
   outcomes: {
     list: (): Promise<OutcomeSummary[]> =>
-      withFallback(async () => {
+      withFallback<OutcomeSummary[]>(async () => {
         const data = await request<any>("/api/outcomes");
         if (!Array.isArray(data)) {
           return [];
@@ -170,7 +170,7 @@ export const api = {
       }, mockOutcomes),
 
     create: async (title: string): Promise<OutcomePlan> =>
-      withFallback(async () => {
+      withFallback<OutcomePlan>(async () => {
         const created = await request<any>("/api/outcomes", {
           method: "POST",
           body: JSON.stringify({ title }),
@@ -193,24 +193,24 @@ export const api = {
             ...mockPlan,
             outcomeId,
             title: created?.title ?? title,
-          };
+          } as OutcomePlan;
         }
       }, {
         ...mockPlan,
         title: title || mockPlan.title,
-      }),
+      } as OutcomePlan),
 
     plan: (id: string): Promise<OutcomePlan> =>
-      withFallback(async () => {
+      withFallback<OutcomePlan>(async () => {
         const data = await request<any>(`/api/outcomes/${id}/plan`);
         return mapPlan(id, data);
       }, {
         ...mockPlan,
         outcomeId: id,
-      }),
+      } as OutcomePlan),
 
     answerClarifyingQuestion: async (id: string, optionIndex: number): Promise<OutcomePlan> =>
-      withFallback(async () => {
+      withFallback<OutcomePlan>(async () => {
         const data = await request<any>(`/api/outcomes/${id}/clarify`, {
           method: "POST",
           body: JSON.stringify({ answer: String(optionIndex) }),
@@ -219,10 +219,10 @@ export const api = {
       }, {
         ...mockPlan,
         outcomeId: id,
-      }),
+      } as OutcomePlan),
 
     startRun: async (id: string): Promise<OutcomeRun> =>
-      withFallback(async () => {
+      withFallback<OutcomeRun>(async () => {
         const created = await request<any>(`/api/outcomes/${id}/run`, {
           method: "POST",
         });
@@ -232,27 +232,27 @@ export const api = {
           outcomeId: id,
           status: "running",
           headline: created?.message ?? mockRun.headline,
-        };
+        } as OutcomeRun;
       }, {
         ...mockRun,
         outcomeId: id,
-      }),
+      } as OutcomeRun),
 
     run: async (id: string): Promise<OutcomeRun> =>
-      withFallback(async () => {
+      withFallback<OutcomeRun>(async () => {
         const data = await request<any>(`/api/outcomes/${id}/run`);
         return {
           ...mockRun,
           ...data,
           outcomeId: id,
-        };
+        } as OutcomeRun;
       }, {
         ...mockRun,
         outcomeId: id,
-      }),
+      } as OutcomeRun),
 
     detail: async (id: string): Promise<OutcomeDetail> =>
-      withFallback(async () => {
+      withFallback<OutcomeDetail>(async () => {
         const data = await request<any>(`/api/outcomes/${id}`);
         const outcome = data?.outcome ?? {};
 
@@ -265,16 +265,16 @@ export const api = {
           narration: data?.answer?.narration ?? mockDetail.narration,
           trail: data?.citations ?? mockDetail.trail,
           artifacts: data?.artifacts ?? mockDetail.artifacts,
-        };
+        } as OutcomeDetail;
       }, {
         ...mockDetail,
         id,
-      }),
+      } as OutcomeDetail),
   },
 
   connections: {
     list: (): Promise<ConnectionGroup[]> =>
-      withFallback(async () => {
+      withFallback<ConnectionGroup[]>(async () => {
         const data = await request<any>("/api/connections");
         if (!Array.isArray(data)) {
           return [];
@@ -302,7 +302,7 @@ export const api = {
       }, mockConnections),
 
     connect: async (toolId: string): Promise<{ redirect_url: string }> =>
-      withFallback(async () => {
+      withFallback<{ redirect_url: string }>(async () => {
         const result = await request<{ redirect_url: string }>(
           `/api/connections/${toolId}/authorize`,
           { method: "POST" }
@@ -315,10 +315,10 @@ export const api = {
       }, { redirect_url: "" }),
 
     disconnect: (toolId: string): Promise<void> =>
-      withFallback(async () => {
+      withFallback<void>(async () => {
         await request(`/api/connections/${toolId}`, {
           method: "DELETE",
         });
-      }, undefined),
+      }, undefined as void),
   },
 };
