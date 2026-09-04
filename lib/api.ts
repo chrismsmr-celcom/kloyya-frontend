@@ -22,7 +22,9 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 );
 
-const BASE_URL = "";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ??
+  "https://kloyya-ia-vert.vercel.app";
 
 console.log("[API] BASE_URL:", BASE_URL);
 
