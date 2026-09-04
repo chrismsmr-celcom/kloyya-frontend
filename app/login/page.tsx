@@ -41,8 +41,8 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/connections`,
-      },
+        redirectTo: `${window.location.origin}/auth/callback`,
+       },
     });
 
     if (error) {
@@ -58,8 +58,8 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "slack",
       options: {
-        redirectTo: `${window.location.origin}/connections`,
-      },
+      redirectTo: `${window.location.origin}/auth/callback`,
+         },
     });
 
     if (error) {
