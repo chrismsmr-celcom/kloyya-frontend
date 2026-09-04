@@ -55,45 +55,45 @@ async function withFallback<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
 
 export const api = {
   outcomes: {
-    list: (): Promise<OutcomeSummary[]> =>
-      withFallback(() => request<OutcomeSummary[]>("/api/outcomes"), mockOutcomes),
+  list: (): Promise<OutcomeSummary[]> =>
+    withFallback(() => request<OutcomeSummary[]>("/api/outcomes"), mockOutcomes),
 
-    create: (title: string): Promise<OutcomePlan> =>
-      withFallback(
-        () =>
-          request<OutcomePlan>("/api/outcomes", {
-            method: "POST",
-            body: JSON.stringify({ title }),  // ✅ Matches backend: { title: string }
-          }),
-        { ...mockPlan, title: title || mockPlan.title }
-      ),
+  create: (title: string): Promise<OutcomePlan> =>
+    withFallback(
+      () =>
+        request<OutcomePlan>("/api/outcomes", {
+          method: "POST",
+          body: JSON.stringify({ title }),
+        }),
+      { ...mockPlan, title: title || mockPlan.title }
+    ),
 
-    plan: (id: string): Promise<OutcomePlan> =>
-      withFallback(() => request<OutcomePlan>(`/api/outcomes/${id}/plan`), mockPlan),
+  plan: (id: string): Promise<OutcomePlan> =>
+    withFallback(() => request<OutcomePlan>(`/api/outcomes/${id}/plan`), mockPlan),
 
-    // ✅ FIXED: Matches backend route /api/outcomes/{outcome_id}/clarify
-    clarifyOutcome: (id: string, answer: string): Promise<OutcomePlan> =>
-      withFallback(
-        () =>
-          request<OutcomePlan>(`/api/outcomes/${id}/clarify`, {
-            method: "POST",
-            body: JSON.stringify({ answer }),  // ✅ Matches backend: { answer: string }
-          }),
-        mockPlan
-      ),
+  // ✅ FIXED: Renamed to match frontend usage
+  answerClarifyingQuestion: (id: string, optionIndex: number): Promise<OutcomePlan> =>
+    withFallback(
+      () =>
+        request<OutcomePlan>(`/api/outcomes/${id}/clarify`, {
+          method: "POST",
+          body: JSON.stringify({ optionIndex }),  // ✅ Matches frontend
+        }),
+      mockPlan
+    ),
 
-    startRun: (id: string): Promise<OutcomeRun> =>
-      withFallback(
-        () => request<OutcomeRun>(`/api/outcomes/${id}/run`, { method: "POST" }),
-        mockRun
-      ),
+  startRun: (id: string): Promise<OutcomeRun> =>
+    withFallback(
+      () => request<OutcomeRun>(`/api/outcomes/${id}/run`, { method: "POST" }),
+      mockRun
+    ),
 
-    run: (id: string): Promise<OutcomeRun> =>
-      withFallback(() => request<OutcomeRun>(`/api/outcomes/${id}/run`), mockRun),
+  run: (id: string): Promise<OutcomeRun> =>
+    withFallback(() => request<OutcomeRun>(`/api/outcomes/${id}/run`), mockRun),
 
-    detail: (id: string): Promise<OutcomeDetail> =>
-      withFallback(() => request<OutcomeDetail>(`/api/outcomes/${id}`), mockDetail),
-  },
+  detail: (id: string): Promise<OutcomeDetail> =>
+    withFallback(() => request<OutcomeDetail>(`/api/outcomes/${id}`), mockDetail),
+},
 
   connections: {
     list: (): Promise<ConnectionGroup[]> =>
