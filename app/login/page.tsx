@@ -4,11 +4,6 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -21,7 +16,19 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    // Création du client UNIQUEMENT au moment du clic (pas au build)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      setError("Variables Supabase manquantes. Vérifie ton .env.local.");
+      setLoading(false);
+      return;
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -30,7 +37,7 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      // Le token est sauvegardé dans le localStorage par Supabase
+      // Le token est automatiquement sauvegardé dans le localStorage par Supabase
       router.push("/connections");
     }
   };
