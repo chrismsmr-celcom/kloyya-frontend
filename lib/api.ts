@@ -100,7 +100,7 @@ export const api = {
       withFallback(() => request<ConnectionGroup[]>("/api/connections"), mockConnections),
 
     // ✅ FIXED: Matches backend route /api/connections/{tool_id}/authorize
-    authorize: (toolId: string): Promise<{ redirect_url: string }> =>
+    connect: (toolId: string): Promise<{ redirect_url: string }> =>
       withFallback(
         () =>
           request<{ redirect_url: string }>(`/api/connections/${toolId}/authorize`, {
