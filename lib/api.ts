@@ -14,6 +14,14 @@ import {
   mockConnections,
 } from "./mock-data";
 
+import { createClient } from "@supabase/supabase-js";
+
+// Initialisation du client Supabase pour gérer l'authentification
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+);
+
 const BASE_URL = "";
 
 console.log("[API] BASE_URL:", BASE_URL);
@@ -31,21 +39,8 @@ async function getAccessToken(): Promise<string | null> {
   }
 
   try {
-    const keys = Object.keys(localStorage);
-    const supabaseKey = keys.find(
-      (key) => key.startsWith("sb-") && key.includes("-auth-token")
-    );
-
-    if (!supabaseKey) {
-      return null;
-    }
-
-    const raw = localStorage.getItem(supabaseKey);
-    if (!raw) {
-      return null;
-    }
-
-    const session = JSON.parse(raw);
+    // Supabase gère automatiquement la lecture du token (URL hash ou localStorage)
+    const { data: { session } } = await supabase.auth.getSession();
     return session?.access_token ?? null;
   } catch (error) {
     console.warn("[API] Unable to read auth token:", error);
