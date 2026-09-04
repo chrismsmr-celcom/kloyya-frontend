@@ -23,8 +23,8 @@ class ApiError extends Error {}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const fullUrl = `${BASE_URL}${path}`;
-  console.log(`[API] ${init?.method || 'GET'} ${fullUrl}`);
-  
+  console.log(`[API] ${init?.method || "GET"} ${fullUrl}`);
+
   const res = await fetch(fullUrl, {
     ...init,
     headers: {
@@ -32,84 +32,100 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       ...init?.headers,
     },
   });
-  
+
   if (!res.ok) {
     const errorBody = await res.text();
     console.error(`[API] Error ${res.status}:`, errorBody);
-    throw new ApiError(`${init?.method ?? "GET"} ${path} -> ${res.status}: ${errorBody}`);
+    throw new ApiError(
+      `${init?.method ?? "GET"} ${path} -> ${res.status}: ${errorBody}`
+    );
   }
-  
+
   return res.json() as Promise<T>;
 }
 
-/** Wrapper : tente l'appel réel, retombe sur `fallback` si le backend
- *  n'est pas encore prêt (réseau, 404, CORS...). */
-async function withFallback<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+/**
+ * Wrapper : tente l'appel réel, retombe sur `fallback` si le backend
+ * n'est pas encore prêt (réseau, 404, CORS...).
+ */
+async function withFallback<T>(
+  fn: () => Promise<T>,
+  fallback: T
+): Promise<T> {
   try {
     return await fn();
   } catch (err) {
-    console.warn("[API] Fallback activated (backend unavailable):", (err as Error).message);
+    console.warn(
+      "[API] Fallback activated (backend unavailable):",
+      (err as Error).message
+    );
     return fallback;
   }
 }
 
 export const api = {
   outcomes: {
-  list: (): Promise<OutcomeSummary[]> =>
-    withFallback(() => request<OutcomeSummary[]>("/api/outcomes"), mockOutcomes),
+    list: (): Promise<OutcomeSummary[]> =>
+      withFallback(() => request<OutcomeSummary[]>("/api/outcomes"), mockOutcomes),
 
-  create: (title: string): Promise<OutcomePlan> =>
-    withFallback(
-      () =>
-        request<OutcomePlan>("/api/outcomes", {
-          method: "POST",
-          body: JSON.stringify({ title }),
-        }),
-      { ...mockPlan, title: title || mockPlan.title }
-    ),
+    create: (title: string): Promise<OutcomePlan> =>
+      withFallback(
+        () =>
+          request<OutcomePlan>("/api/outcomes", {
+            method: "POST",
+            body: JSON.stringify({ title }),
+          }),
+        { ...mockPlan, title: title || mockPlan.title }
+      ),
 
-  plan: (id: string): Promise<OutcomePlan> =>
-    withFallback(() => request<OutcomePlan>(`/api/outcomes/${id}/plan`), mockPlan),
+    plan: (id: string): Promise<OutcomePlan> =>
+      withFallback(() => request<OutcomePlan>(`/api/outcomes/${id}/plan`), mockPlan),
 
-  // ✅ FIXED: Renamed to match frontend usage
-  answerClarifyingQuestion: (id: string, optionIndex: number): Promise<OutcomePlan> =>
-    withFallback(
-      () =>
-        request<OutcomePlan>(`/api/outcomes/${id}/clarify`, {
-          method: "POST",
-          body: JSON.stringify({ optionIndex }),  // ✅ Matches frontend
-        }),
-      mockPlan
-    ),
+    answerClarifyingQuestion: (
+      id: string,
+      optionIndex: number
+    ): Promise<OutcomePlan> =>
+      withFallback(
+        () =>
+          request<OutcomePlan>(`/api/outcomes/${id}/clarify`, {
+            method: "POST",
+            body: JSON.stringify({ optionIndex }),
+          }),
+        mockPlan
+      ),
 
-  startRun: (id: string): Promise<OutcomeRun> =>
-    withFallback(
-      () => request<OutcomeRun>(`/api/outcomes/${id}/run`, { method: "POST" }),
-      mockRun
-    ),
+    startRun: (id: string): Promise<OutcomeRun> =>
+      withFallback(
+        () => request<OutcomeRun>(`/api/outcomes/${id}/run`, { method: "POST" }),
+        mockRun
+      ),
 
-  run: (id: string): Promise<OutcomeRun> =>
-    withFallback(() => request<OutcomeRun>(`/api/outcomes/${id}/run`), mockRun),
+    run: (id: string): Promise<OutcomeRun> =>
+      withFallback(() => request<OutcomeRun>(`/api/outcomes/${id}/run`), mockRun),
 
-  detail: (id: string): Promise<OutcomeDetail> =>
-    withFallback(() => request<OutcomeDetail>(`/api/outcomes/${id}`), mockDetail),
-},
+    detail: (id: string): Promise<OutcomeDetail> =>
+      withFallback(() => request<OutcomeDetail>(`/api/outcomes/${id}`), mockDetail),
+  },
 
   connections: {
     list: (): Promise<ConnectionGroup[]> =>
-      withFallback(() => request<ConnectionGroup[]>("/api/connections"), mockConnections),
+      withFallback(
+        () => request<ConnectionGroup[]>("/api/connections"),
+        mockConnections
+      ),
 
-    // ✅ FIXED: Matches backend route /api/connections/{tool_id}/authorize
     connect: (toolId: string): Promise<{ redirect_url: string }> =>
       withFallback(
         () =>
-          request<{ redirect_url: string }>(`/api/connections/${toolId}/authorize`, {
-            method: "POST",
-          }),
-        {}
+          request<{ redirect_url: string }>(
+            `/api/connections/${toolId}/authorize`,
+            {
+              method: "POST",
+            }
+          ),
+        { redirect_url: "" }  // ✅ FIXED: Correct fallback type
       ),
 
-    // ✅ FIXED: Matches backend route /api/connections/{tool_id}
     disconnect: (toolId: string): Promise<void> =>
       withFallback(
         () =>
