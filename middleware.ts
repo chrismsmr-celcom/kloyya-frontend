@@ -10,9 +10,10 @@ export function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isLoginPage = pathname === '/login';
+  const isAuthCallback = pathname === '/auth/callback';
 
   // 2. Si l'utilisateur N'EST PAS connecté et essaie d'accéder à une page protégée
-  if (!hasAuth && !isLoginPage) {
+   if (!hasAuth && !isLoginPage && !isAuthCallback) { 
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
